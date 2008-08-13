@@ -23,9 +23,13 @@ our @EXPORT_OK = qw//;
 
 bootstrap String::Comments::Extract $VERSION;
 
+use String::Comments::Extract::C;
+use String::Comments::Extract::CPP;
+use String::Comments::Extract::JavaScript;
+
 =head1 SYNOPSIS
 
-    use String::Comments::Extract::CPP;
+    use String::Comments::Extract;
 
     my $source = <<_END_;
     /* A Hello World program
@@ -65,20 +69,72 @@ bootstrap String::Comments::Extract $VERSION;
     my @comments = String::Comments::Extract::C->collect_comments($source);
     # ... returns the following list:
         (
-            <<_END_,
- A Hello World program
+' A Hello World program
     
         Copyright Ty Coon
         // ...and Buckaroo Banzai
-      "Yoyodyne"
-_END_
+      "Yoyodyne"'
             ' But this is',
             ' Last comment',
         )
 
+=head1 DESCRIPTION
+
+String::Comments::Extract is a tool for extracting comments from C/C++/JavaScript source. The extractor
+is implemented using an actual tokenizer (written in C via XS, adapted from L<JavaScript::Minifier::XS>), so it can robustly
+deal with notoriously problematic cases. Comment-like structures in strings, for example:
+
+    std::cout << "This is not a // real C++ comment " << std::endl
+    printf("/* This is not a real C comment */\n");
+    # The extractor will ignore both of the above
+
+String::Comments::Extract considers C/C++/JavaScript comment structures the same, so, for now, it doesn't really
+matter which method you use (this means it will not complain about C++ style comments in C source).
+
+=head1 METHODS
+
+=head2 String::Comments::Extract::JavaScript->extract( <source> )
+
+=head2 String::Comments::Extract::CPP->extract( <source> )
+
+=head2 String::Comments::Extract::C->extract( <source> )
+
+Returns a string representing the comments in <source>
+
+Comment delimeters (C</* */ //>) are left in as-is
+
+Whitespace of <source> is otherwise preserved, so you'll probably have to do some post-processing on the result to get
+rid of some cruft.
+
+=head2 String::Comments::Extract::JavaScript->collect( <source> )
+
+=head2 String::Comments::Extract::CPP->collect( <source> )
+
+=head2 String::Comments::Extract::C->collect( <source> )
+
+Returns a list containing an item for each block- or line-comment in <source>
+
+Comment delimeters (C</* */ //>) are removed (although may appear in the comment itself)
+
+Whitespace outside of comments may not be preserved exactly as it was in <source>
+
+=head1 SEE ALSO
+
+L<File::Comments>
+
+=cut
+
 =head1 AUTHOR
 
 Robert Krimen, C<< <rkrimen at cpan.org> >>
+
+=head1 SOURCE
+
+You can contribute or fork this project via GitHub:
+
+L<http://github.com/robertkrimen/string-comments-extract/tree/master>
+
+    git clone git://github.com/robertkrimen/string-comments-extract.git PACKAGE
 
 =head1 BUGS
 

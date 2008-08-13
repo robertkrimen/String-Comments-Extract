@@ -2,6 +2,7 @@ use inc::Module::Install;
 
 name 'String-Comments-Extract';
 all_from 'lib/String/Comments/Extract.pm';
+resources repository => 'http://github.com/robertkrimen/string-comments-extract/tree/master';
 
 {
     require ExtUtils::MakeMaker;

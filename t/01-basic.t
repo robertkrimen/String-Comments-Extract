@@ -9,6 +9,7 @@ plan qw/no_plan/;
 
 use String::Comments::Extract::JavaScript;
 
+my (@output, $output);
 my $input = <<_END_;
 /* Here is a comment */
 
@@ -57,8 +58,79 @@ else {
 // And another" one
 _END_
 
-diag(String::Comments::Extract::JavaScript->extract_comments($input));
-diag("Now for something different!");
-diag(join "\n", String::Comments::Extract::JavaScript->collect_comments($input));
+is($output = String::Comments::Extract::JavaScript->extract_comments($input), <<_END_);
+/* Here is a comment */
 
-ok(1);
+// Here is another comment
+
+/* and another! */
+
+ 
+
+// Here is a comment /* containing a comment */
+
+
+
+  
+    
+
+ 
+    
+
+/* A multiline
+    comment
+
+    // With another comment inside
+
+    "And a stringlike thing"
+At the front
+*/
+
+/* A multiline comment
+ with some stuff at the end */  
+
+  
+     
+      
+        //But get this one!
+
+
+   // Comment after an "if"
+    
+
+ 
+    
+
+
+// A wacky "comment
+// And another" one
+_END_
+
+#use XXX;
+#print "$output\n";
+
+@output = String::Comments::Extract::JavaScript->collect_comments($input);
+$output[5] .= "\n";
+cmp_deeply(\@output, [
+' Here is a comment ',
+' Here is another comment',
+' and another! ',
+' Here is a comment /* containing a comment */',
+<<_END_,
+ A multiline
+    comment
+
+    // With another comment inside
+
+    "And a stringlike thing"
+At the front
+_END_
+<<_END_,
+ A multiline comment
+ with some stuff at the end 
+_END_
+'But get this one!',
+' Comment after an "if"',
+' A wacky "comment',
+' And another" one',
+]);

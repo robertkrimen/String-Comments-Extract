@@ -7,7 +7,7 @@ use Test::Most;
 
 plan qw/no_plan/;
 
-use String::Comments::Extract::C;
+use String::Comments::Extract;
 
 my $source = <<_END_;
     /* A Hello World program
@@ -25,7 +25,7 @@ my $source = <<_END_;
 
     // Last comment
 _END_
-my $comments = String::Comments::Extract::C->extract_comments($source);
+my $comments = String::Comments::Extract::C->extract($source);
 is($comments, <<_END_);
     /* A Hello World program
     
@@ -43,7 +43,7 @@ is($comments, <<_END_);
     // Last comment
 _END_
 
-my @comments = String::Comments::Extract::C->collect_comments($source);
+my @comments = String::Comments::Extract::C->collect($source);
 $comments[0] .= "\n";
 cmp_deeply(\@comments, [
     <<_END_,

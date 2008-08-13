@@ -11,6 +11,10 @@ sub extract_comments {
     return String::Comments::Extract::_cppcjs_extract_comments($input);
 }
 
+sub extract {
+    return shift->extract_comments(@_);
+}
+
 sub collect_comments {
     my $self = shift;
     my $input = shift;
@@ -21,6 +25,10 @@ sub collect_comments {
         push @comments, defined $1 ? $1 : $2;
     }
     return @comments;
+}
+
+sub collect {
+    return shift->collect_comments(@_);
 }
 
 1;
