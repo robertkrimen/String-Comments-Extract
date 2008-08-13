@@ -5,7 +5,7 @@ use strict;
 
 =head1 NAME
 
-String::Comments::Extract - The great new String::Comments::Extract!
+String::Comments::Extract -
 
 =head1 VERSION
 
@@ -15,38 +15,15 @@ Version 0.01
 
 our $VERSION = '0.01';
 
+require Exporter;
+require DynaLoader;
+
+our @ISA = qw/Exporter DynaLoader/;
+our @EXPORT_OK = qw//;
+
+bootstrap String::Comments::Extract $VERSION;
 
 =head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
-    use String::Comments::Extract;
-
-    my $foo = String::Comments::Extract->new();
-    ...
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 FUNCTIONS
-
-=head2 function1
-
-=cut
-
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
 
 =head1 AUTHOR
 
