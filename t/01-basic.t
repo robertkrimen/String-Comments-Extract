@@ -16,6 +16,8 @@ my $input = <<_END_;
 
 /* and another! */
 
+#define I_AM_SPECIAL_LA_LA_LA
+
 // Here is a comment /* containing a comment */
 
 "// This is not a comment "
@@ -35,18 +37,25 @@ else {
 At the front
 */
 
-div.bd {
-    font-size: 88%;
+int main() {
+    int *pointer;
+    int cannot_actually_do_this_in_c(ha ha)
+    char *string = "With \\"some escapes" //But get this one!
 }
 
-if (1) {
+if (1) { // Comment after an "if"
     0;
 }
 else {
     malloc();
 }
+
+// A wacky "comment
+// And another" one
 _END_
 
 diag(String::Comments::Extract::CCJ->extract_comments($input));
+diag("Now for something different!");
+diag(join "\n", String::Comments::Extract::CCJ->collect_comments($input));
 
 ok(1);
