@@ -7,7 +7,7 @@ use Test::Most;
 
 plan qw/no_plan/;
 
-use String::Comments::Extract::CCJ;
+use String::Comments::Extract::CPPCJS;
 
 my $input = <<_END_;
 /* Here is a comment */
@@ -54,8 +54,8 @@ else {
 // And another" one
 _END_
 
-diag(String::Comments::Extract::CCJ->extract_comments($input));
+diag(String::Comments::Extract::CPPCJS->extract_comments($input));
 diag("Now for something different!");
-diag(join "\n", String::Comments::Extract::CCJ->collect_comments($input));
+diag(join "\n", String::Comments::Extract::CPPCJS->collect_comments($input));
 
 ok(1);
