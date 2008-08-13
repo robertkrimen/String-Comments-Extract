@@ -21,7 +21,7 @@ int is_Endspace(char chr) {
 int is_Whitespace(char chr) {
     return is_Space(chr) || is_Endspace(chr);
 }
-int is_Identifier(char chr) {
+int is_identifier(char chr) {
     if ((chr >= 'a') && (chr <= 'z')) return 1;
     if ((chr >= 'A') && (chr <= 'Z')) return 1;
     if ((chr >= '0') && (chr <= '9')) return 1;
@@ -227,6 +227,7 @@ void _cppcjs_extract_block_comment(cppcjs_document* document, Node* node) {
     while (offset < document->length) {
         if (buffer[offset] == '*') {
             if (buffer[offset+1] == '/') {
+
                 const char* start = buffer + document->offset;
                 size_t length     = offset - document->offset + 2;
                 cppcjs_set_node_content(node, start, length);
@@ -270,16 +271,16 @@ void _cppcjs_extract_whitespace(cppcjs_document* document, Node* node) {
     node->type = NODE_WHITESPACE;
 }
 
-void _cppcjs_extract_Identifier(cppcjs_document* document, Node* node) {
+void _cppcjs_extract_identifier(cppcjs_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
-    while ((offset < document->length) && is_Identifier(buffer[offset]))
+    while ((offset < document->length) && is_identifier(buffer[offset]))
         offset ++;
     cppcjs_set_node_content(node, document->buffer+document->offset, offset-document->offset);
     node->type = NODE_IDENTIFIER;
 }
 
-void _cppcjs_extract_Sigil(cppcjs_document* document, Node* node) {
+void _cppcjs_extract_sigil(cppcjs_document* document, Node* node) {
     cppcjs_set_node_content(node, document->buffer+document->offset, 1);
     node->type = NODE_SIGIL;
 }
@@ -307,16 +308,16 @@ Node* cppcjs_tokenize_string(const char* string) {
             else if (document.buffer[document.offset+1] == '/')
                 _cppcjs_extract_line_comment(&document, node);
             else
-                _cppcjs_extract_Sigil(&document, node);
+                _cppcjs_extract_sigil(&document, node);
         }
         else if ((document.buffer[document.offset] == '"') || (document.buffer[document.offset] == '\''))
             _cppcjs_extract_literal(&document, node);
         else if (is_Whitespace(document.buffer[document.offset]))
             _cppcjs_extract_whitespace(&document, node);
-        else if (is_Identifier(document.buffer[document.offset]))
-            _cppcjs_extract_Identifier(&document, node);
+        else if (is_identifier(document.buffer[document.offset]))
+            _cppcjs_extract_identifier(&document, node);
         else
-            _cppcjs_extract_Sigil(&document, node);
+            _cppcjs_extract_sigil(&document, node);
 
         if (node->length) {
             document.offset += node->length;
@@ -341,8 +342,21 @@ enum {
 };
 int cppcjs_can_prune(Node* node) {
 
+    Node* previous = node->previous;
+    Node* next = node->next;
+
     switch (node->type) {
         case NODE_WHITESPACE:
+            return PRUNE_NO;
+            if (previous && node_is_ENDSPACE(previous))
+                return PRUNE_CURRENT;
+            if (previous && node_is_WHITESPACE(previous))
+                return PRUNE_PREVIOUS;
+            if (!previous)
+                return PRUNE_CURRENT;
+            if (!next)
+                return PRUNE_CURRENT;
+            return PRUNE_NO;
         case NODE_BLOCK_COMMENT:
         case NODE_LINE_COMMENT:
             return PRUNE_NO;

@@ -7,7 +7,7 @@ use Test::Most;
 
 plan qw/no_plan/;
 
-use String::Comments::Extract::CPPCJS;
+use String::Comments::Extract::JavaScript;
 
 my $input = <<_END_;
 /* Here is a comment */
@@ -37,6 +37,9 @@ else {
 At the front
 */
 
+/* A multiline comment
+ with some stuff at the end */ int printf()
+
 int main() {
     int *pointer;
     int cannot_actually_do_this_in_c(ha ha)
@@ -54,8 +57,8 @@ else {
 // And another" one
 _END_
 
-diag(String::Comments::Extract::CPPCJS->extract_comments($input));
+diag(String::Comments::Extract::JavaScript->extract_comments($input));
 diag("Now for something different!");
-diag(join "\n", String::Comments::Extract::CPPCJS->collect_comments($input));
+diag(join "\n", String::Comments::Extract::JavaScript->collect_comments($input));
 
 ok(1);

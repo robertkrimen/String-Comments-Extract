@@ -5,7 +5,7 @@ use strict;
 
 =head1 NAME
 
-String::Comments::Extract -
+String::Comments::Extract - Extract comments from C, C++, and JavaScript
 
 =head1 VERSION
 
@@ -24,6 +24,57 @@ our @EXPORT_OK = qw//;
 bootstrap String::Comments::Extract $VERSION;
 
 =head1 SYNOPSIS
+
+    use String::Comments::Extract::CPP;
+
+    my $source = <<_END_;
+    /* A Hello World program
+    
+        Copyright Ty Coon
+        // ...and Buckaroo Banzai
+      "Yoyodyne"*/
+
+    void main() {
+        printf("Hello, World.\n");
+        printf("/* This is not a real comment */");
+        printf("// Neither is this */");
+        // But this is
+    }
+
+    // Last comment
+    _END_
+
+    my $comments = String::Comments::Extract::C->extract_comments($source);
+    # ... returns the following result:
+
+        /* A Hello World program
+        
+            Copyright Ty Coon
+            // ...and Buckaroo Banzai
+          "Yoyodyne"*/
+
+          
+            
+            
+            
+            // But this is
+        
+
+        // Last comment
+
+    my @comments = String::Comments::Extract::C->collect_comments($source);
+    # ... returns the following list:
+        (
+            <<_END_,
+ A Hello World program
+    
+        Copyright Ty Coon
+        // ...and Buckaroo Banzai
+      "Yoyodyne"
+_END_
+            ' But this is',
+            ' Last comment',
+        )
 
 =head1 AUTHOR
 
