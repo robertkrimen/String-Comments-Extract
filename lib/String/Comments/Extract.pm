@@ -5,15 +5,15 @@ use strict;
 
 =head1 NAME
 
-String::Comments::Extract - Extract comments from C, C++, and JavaScript
+String::Comments::Extract - Extract comments from C/C++/JavaScript/Java source
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 require Exporter;
 require DynaLoader;
@@ -23,15 +23,17 @@ our @EXPORT_OK = qw//;
 
 bootstrap String::Comments::Extract $VERSION;
 
+use String::Comments::Extract::SlashStar;
 use String::Comments::Extract::C;
 use String::Comments::Extract::CPP;
 use String::Comments::Extract::JavaScript;
+use String::Comments::Extract::Java;
 
 =head1 SYNOPSIS
 
     use String::Comments::Extract;
 
-    my $source = <<_END_;
+    my $source = <<_END_
     /* A Hello World program
     
         Copyright Ty Coon
@@ -48,7 +50,7 @@ use String::Comments::Extract::JavaScript;
     // Last comment
     _END_
 
-    my $comments = String::Comments::Extract::C->extract_comments($source);
+    my $comments = String::Comments::Extract::C->extract($source)
     # ... returns the following result:
 
         /* A Hello World program
@@ -66,30 +68,36 @@ use String::Comments::Extract::JavaScript;
 
         // Last comment
 
-    my @comments = String::Comments::Extract::C->collect_comments($source);
+    my @comments = String::Comments::Extract::C->collect($source)
     # ... returns the following list:
         (
 ' A Hello World program
     
         Copyright Ty Coon
         // ...and Buckaroo Banzai
-      "Yoyodyne"'
+      "Yoyodyne"',
             ' But this is',
             ' Last comment',
         )
 
 =head1 DESCRIPTION
 
-String::Comments::Extract is a tool for extracting comments from C/C++/JavaScript source. The extractor
-is implemented using an actual tokenizer (written in C via XS, adapted from L<JavaScript::Minifier::XS>), so it can robustly
-deal with notoriously problematic cases. Comment-like structures in strings, for example:
+String::Comments::Extract is a tool for extracting comments from C/C++/JavaScript/Java source. The extractor
+is implemented using an actual tokenizer (written in C via XS [adapted from L<JavaScript::Minifier::XS>]). By using
+a tokenizer, it can correctly deal with notoriously problematic cases, such as comment-like structures embedded in strings:
 
     std::cout << "This is not a // real C++ comment " << std::endl
     printf("/* This is not a real C comment */\n");
     # The extractor will ignore both of the above
 
-String::Comments::Extract considers C/C++/JavaScript comment structures the same, so, for now, it doesn't really
+String::Comments::Extract considers C/C++/JavaScript/Java comment structures the same, so, for now, it doesn't really
 matter which method you use (this means it will not complain about C++ style comments in C source).
+
+The language agnostic interface to C/C++/JavaScript/Java comment extractor is accessible via String::Comments::Extract::SlashStar
+
+    # Can handle slash-star (/* */) and slash-slash (//) comments
+    String::Comments::Extract::SlashStar->extract
+    String::Comments::Extract::SlashStar->collect
 
 =head1 METHODS
 
@@ -99,12 +107,13 @@ matter which method you use (this means it will not complain about C++ style com
 
 =head2 String::Comments::Extract::C->extract( <source> )
 
+=head2 String::Comments::Extract::SlashStar->extract( <source> )
+
 Returns a string representing the comments in <source>
 
-Comment delimeters (C</* */ //>) are left in as-is
+Comment delimeters ( C</* */ //> ) are left in as-is
 
-Whitespace of <source> is otherwise preserved, so you'll probably have to do some post-processing on the result to get
-rid of some cruft.
+Whitespace of <source> is otherwise preserved, so you'll probably have to do some post-processing to get rid of some cruft.
 
 =head2 String::Comments::Extract::JavaScript->collect( <source> )
 
@@ -112,11 +121,13 @@ rid of some cruft.
 
 =head2 String::Comments::Extract::C->collect( <source> )
 
+=head2 String::Comments::Extract::SlashStar->collect( <source> )
+
 Returns a list containing an item for each block- or line-comment in <source>
 
-Comment delimeters (C</* */ //>) are removed (although may appear in the comment itself)
+Comment delimeters ( C</* */ //> ) around the comment are removed
 
-Whitespace outside of comments may not be preserved exactly as it was in <source>
+Whitespace outside of comments may not be preserved exactly
 
 =head1 SEE ALSO
 

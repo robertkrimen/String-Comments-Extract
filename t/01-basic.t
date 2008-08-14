@@ -7,10 +7,10 @@ use Test::Most;
 
 plan qw/no_plan/;
 
-use String::Comments::Extract::JavaScript;
+use String::Comments::Extract::SlashStar;
 
-my (@output, $output);
-my $input = <<_END_;
+my (@output, $output, $input);
+$input = <<_END_;
 /* Here is a comment */
 
 // Here is another comment
@@ -58,7 +58,7 @@ else {
 // And another" one
 _END_
 
-is($output = String::Comments::Extract::JavaScript->extract_comments($input), <<_END_);
+is($output = String::Comments::Extract::SlashStar->extract_comments($input), <<_END_);
 /* Here is a comment */
 
 // Here is another comment
@@ -109,7 +109,7 @@ _END_
 #use XXX;
 #print "$output\n";
 
-@output = String::Comments::Extract::JavaScript->collect_comments($input);
+@output = String::Comments::Extract::SlashStar->collect_comments($input);
 $output[5] .= "\n";
 cmp_deeply(\@output, [
 ' Here is a comment ',

@@ -86,7 +86,7 @@ typedef struct {
     const char* buffer;
     size_t      length;
     size_t      offset;
-} cppcjs_document;
+} slash_star_document;
 
 
 #define node_is_WHITESPACE(node)                  ((node->type == NODE_WHITESPACE))
@@ -103,7 +103,7 @@ typedef struct {
 #define node_is_ENDSPACE(node)                    (node_is_WHITESPACE(node) && is_Endspace(node->content[0]))
 #define node_is_CHAR(node,chr)                    ((node->content[0]==chr) && (node->length==1))
 
-Node* cppcjs_alloc_node() {
+Node* slash_star_alloc_node() {
     Node* node = malloc(sizeof(Node));
     node->previous = NULL;
     node->next = NULL;
@@ -113,45 +113,45 @@ Node* cppcjs_alloc_node() {
     return node;
 }
 
-void cppcjs_free_node(Node* node) {
+void slash_star_free_node(Node* node) {
     if (node->content)
         free(node->content);
     free(node);
 }
-void cppcjs_free_node_list(Node* head) {
+void slash_star_free_node_list(Node* head) {
     return;
     while (head) {
         Node* tmp = head->next;
-        cppcjs_free_node(head);
+        slash_star_free_node(head);
         head = tmp;
     }
 }
 
-void cppcjs_clear_node_content(Node* node) {
+void slash_star_clear_node_content(Node* node) {
     if (node->content)
         free(node->content);
     node->content = NULL;
     node->length = 0;
 }
 
-void cppcjs_set_node_content(Node* node, const char* string, size_t length) {
+void slash_star_set_node_content(Node* node, const char* string, size_t length) {
     size_t buffer_size = length + 1;
-    cppcjs_clear_node_content(node);
+    slash_star_clear_node_content(node);
     node->length = length;
     node->content = malloc( sizeof(char) * buffer_size );
     memset( node->content, 0, buffer_size );
     strncpy( node->content, string, length );
 }
 
-void cppcjs_discard_node(Node* node) {
+void slash_star_discard_node(Node* node) {
     if (node->previous)
         node->previous->next = node->next;
     if (node->next)
         node->next->previous = node->previous;
-    cppcjs_free_node(node);
+    slash_star_free_node(node);
 }
 
-void cppcjs_append_node(Node* element, Node* node) {
+void slash_star_append_node(Node* element, Node* node) {
     if (element->next)
         element->next->previous = node;
     node->next = element->next;
@@ -159,7 +159,7 @@ void cppcjs_append_node(Node* element, Node* node) {
     element->next = node;
 }
 
-void cppcjs_collapse_node_to_whitespace(Node* node) {
+void slash_star_collapse_node_to_whitespace(Node* node) {
     if (node->content) {
         char ws = node->content[0];
         size_t idx;
@@ -169,11 +169,11 @@ void cppcjs_collapse_node_to_whitespace(Node* node) {
                 break;
             }
         }
-        cppcjs_set_node_content(node, &ws, 1);
+        slash_star_set_node_content(node, &ws, 1);
     }
 }
 
-void cppcjs_collapse_node_to_endspace(Node* node) {
+void slash_star_collapse_node_to_endspace(Node* node) {
     if (node->content) {
         char ws = 0;
         size_t idx;
@@ -183,14 +183,14 @@ void cppcjs_collapse_node_to_endspace(Node* node) {
                 break;
             }
         }
-        cppcjs_clear_node_content(node);
+        slash_star_clear_node_content(node);
         if (ws)
-            cppcjs_set_node_content(node, &ws, 1);
+            slash_star_set_node_content(node, &ws, 1);
     }
 }
 
 
-void _cppcjs_extract_literal(cppcjs_document* document, Node* node) {
+void _slash_star_extract_literal(slash_star_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
     char delimiter  = buffer[offset];
@@ -205,7 +205,7 @@ void _cppcjs_extract_literal(cppcjs_document* document, Node* node) {
         else if (buffer[offset] == delimiter) {
             const char* start = buffer + document->offset;
             size_t length     = offset - document->offset + 1;
-            cppcjs_set_node_content(node, start, length);
+            slash_star_set_node_content(node, start, length);
             node->type = NODE_LITERAL;
             return;
         }
@@ -215,7 +215,7 @@ void _cppcjs_extract_literal(cppcjs_document* document, Node* node) {
     croak( "Unterminated quoted string literal" );
 }
 
-void _cppcjs_extract_block_comment(cppcjs_document* document, Node* node) {
+void _slash_star_extract_block_comment(slash_star_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
 
@@ -230,7 +230,7 @@ void _cppcjs_extract_block_comment(cppcjs_document* document, Node* node) {
 
                 const char* start = buffer + document->offset;
                 size_t length     = offset - document->offset + 2;
-                cppcjs_set_node_content(node, start, length);
+                slash_star_set_node_content(node, start, length);
                 node->type = NODE_BLOCK_COMMENT;
                 return;
             }
@@ -242,7 +242,7 @@ void _cppcjs_extract_block_comment(cppcjs_document* document, Node* node) {
     croak( "Unterminated block comment" );
 }
 
-void _cppcjs_extract_line_comment(cppcjs_document* document, Node* node) {
+void _slash_star_extract_line_comment(slash_star_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
 
@@ -257,36 +257,36 @@ void _cppcjs_extract_line_comment(cppcjs_document* document, Node* node) {
     {
         const char* start = buffer + document->offset;
         size_t length = offset - document->offset;
-        cppcjs_set_node_content(node, start, length);
+        slash_star_set_node_content(node, start, length);
         node->type = NODE_LINE_COMMENT;
     }
 }
 
-void _cppcjs_extract_whitespace(cppcjs_document* document, Node* node) {
+void _slash_star_extract_whitespace(slash_star_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
     while ((offset < document->length) && is_Whitespace(buffer[offset]))
         offset ++;
-    cppcjs_set_node_content(node, document->buffer+document->offset, offset-document->offset);
+    slash_star_set_node_content(node, document->buffer+document->offset, offset-document->offset);
     node->type = NODE_WHITESPACE;
 }
 
-void _cppcjs_extract_identifier(cppcjs_document* document, Node* node) {
+void _slash_star_extract_identifier(slash_star_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
     while ((offset < document->length) && is_identifier(buffer[offset]))
         offset ++;
-    cppcjs_set_node_content(node, document->buffer+document->offset, offset-document->offset);
+    slash_star_set_node_content(node, document->buffer+document->offset, offset-document->offset);
     node->type = NODE_IDENTIFIER;
 }
 
-void _cppcjs_extract_sigil(cppcjs_document* document, Node* node) {
-    cppcjs_set_node_content(node, document->buffer+document->offset, 1);
+void _slash_star_extract_sigil(slash_star_document* document, Node* node) {
+    slash_star_set_node_content(node, document->buffer+document->offset, 1);
     node->type = NODE_SIGIL;
 }
 
-Node* cppcjs_tokenize_string(const char* string) {
-    cppcjs_document document;
+Node* slash_star_tokenize_string(const char* string) {
+    slash_star_document document;
 
     document.head = NULL;
     document.tail = NULL;
@@ -296,7 +296,7 @@ Node* cppcjs_tokenize_string(const char* string) {
 
     while ((document.offset < document.length) && (document.buffer[document.offset])) {
 
-        Node* node = cppcjs_alloc_node();
+        Node* node = slash_star_alloc_node();
         if (!document.head)
             document.head = node;
         if (!document.tail)
@@ -304,30 +304,30 @@ Node* cppcjs_tokenize_string(const char* string) {
 
         if (document.buffer[document.offset] == '/') {
             if (document.buffer[document.offset+1] == '*')
-                _cppcjs_extract_block_comment(&document, node);
+                _slash_star_extract_block_comment(&document, node);
             else if (document.buffer[document.offset+1] == '/')
-                _cppcjs_extract_line_comment(&document, node);
+                _slash_star_extract_line_comment(&document, node);
             else
-                _cppcjs_extract_sigil(&document, node);
+                _slash_star_extract_sigil(&document, node);
         }
         else if ((document.buffer[document.offset] == '"') || (document.buffer[document.offset] == '\''))
-            _cppcjs_extract_literal(&document, node);
+            _slash_star_extract_literal(&document, node);
         else if (is_Whitespace(document.buffer[document.offset]))
-            _cppcjs_extract_whitespace(&document, node);
+            _slash_star_extract_whitespace(&document, node);
         else if (is_identifier(document.buffer[document.offset]))
-            _cppcjs_extract_identifier(&document, node);
+            _slash_star_extract_identifier(&document, node);
         else
-            _cppcjs_extract_sigil(&document, node);
+            _slash_star_extract_sigil(&document, node);
 
         if (node->length) {
             document.offset += node->length;
             if (node != document.tail)
-                cppcjs_append_node(document.tail, node);
+                slash_star_append_node(document.tail, node);
             document.tail = node;
         }
         else {
             document.offset += 1;
-            cppcjs_free_node(node);
+            slash_star_free_node(node);
         }
     }
 
@@ -340,7 +340,7 @@ enum {
     PRUNE_CURRENT,
     PRUNE_NEXT
 };
-int cppcjs_can_prune(Node* node) {
+int slash_star_can_prune(Node* node) {
 
     Node* previous = node->previous;
     Node* next = node->next;
@@ -365,26 +365,26 @@ int cppcjs_can_prune(Node* node) {
     return PRUNE_CURRENT;
 }
 
-Node* cppcjs_prune_branch(Node *head) {
+Node* slash_star_prune_branch(Node *head) {
     Node* current = head;
     while (current) {
-        int prune = cppcjs_can_prune(current);
+        int prune = slash_star_can_prune(current);
         Node* previous = current->previous;
         Node* next = current->next;
         switch (prune) {
             case PRUNE_PREVIOUS:
-                cppcjs_discard_node(previous);
+                slash_star_discard_node(previous);
                 if (previous == head)
                     previous = current;
                 break;
             case PRUNE_CURRENT:
-                cppcjs_discard_node(current);
+                slash_star_discard_node(current);
                 if (current == head)
                     head = previous ? previous : next;
                 current = previous ? previous : next;
                 break;
             case PRUNE_NEXT:
-                cppcjs_discard_node(next);
+                slash_star_discard_node(next);
                 break;
             default:
                 current = next;
@@ -395,11 +395,11 @@ Node* cppcjs_prune_branch(Node *head) {
     return head;
 }
 
-char* cppcjs_extract_comments(const char* string) {
+char* slash_star_extract_comments(const char* string) {
     char* result;
-    Node* head = cppcjs_tokenize_string(string);
+    Node* head = slash_star_tokenize_string(string);
     if (!head) return NULL;
-    head = cppcjs_prune_branch(head);
+    head = slash_star_prune_branch(head);
     if (!head) return NULL;
     {
         Node* current;
@@ -413,7 +413,7 @@ char* cppcjs_extract_comments(const char* string) {
         }
         *ptr = 0;
     }
-    cppcjs_free_node_list(head);
+    slash_star_free_node_list(head);
     return result;
 }
 
@@ -424,13 +424,13 @@ MODULE = String::Comments::Extract PACKAGE = String::Comments::Extract
 PROTOTYPES: disable
 
 SV*
-_cppcjs_extract_comments(string)
+_slash_star_extract_comments(string)
     SV* string
     INIT:
         char* buffer = NULL;
         RETVAL = &PL_sv_undef;
     CODE:
-        buffer = cppcjs_extract_comments( SvPVX(string) );
+        buffer = slash_star_extract_comments( SvPVX(string) );
         if (buffer != NULL) {
             RETVAL = newSVpv(buffer, 0);
             free( buffer );
