@@ -280,7 +280,30 @@ void _slash_star_extract_identifier(slash_star_document* document, Node* node) {
     node->type = NODE_IDENTIFIER;
 }
 
+void _slash_star_extract_regexp( slash_star_document* document, Node* node ) {
+    const char* buffer = document->buffer;
+    size_t offset = document->offset + 1;
+    int in_character_class;
+    while ( buffer[ offset ] != '/' || in_character_class ) {
+        char chr = buffer[ offset ];
+        if ( chr == '\\' ) {
+            offset += 1;
+            offset += 1;
+        }
+        else {
+            if ( chr == '[' ) in_character_class = 1;
+            if ( chr == ']' ) in_character_class = 0;
+            offset += 1;
+        }
+    }
+    offset += 1;
+    slash_star_set_node_content( node, document->buffer + document->offset, offset - document->offset );
+    /*printf( "# re: %s\n", node->content );*/
+    node->type = NODE_IDENTIFIER;
+}
+
 void _slash_star_extract_sigil(slash_star_document* document, Node* node) {
+    /*printf( "# SIGIL %c\n", document->buffer[ document->offset ] ); */
     slash_star_set_node_content(node, document->buffer+document->offset, 1);
     node->type = NODE_SIGIL;
 }
@@ -301,14 +324,24 @@ Node* slash_star_tokenize_string(const char* string) {
             document.head = node;
         if (!document.tail)
             document.tail = node;
-
+            
+        /*printf( "# %c\n", document.buffer[ document.offset ] ); */
         if (document.buffer[document.offset] == '/') {
             if (document.buffer[document.offset+1] == '*')
                 _slash_star_extract_block_comment(&document, node);
             else if (document.buffer[document.offset+1] == '/')
                 _slash_star_extract_line_comment(&document, node);
-            else
-                _slash_star_extract_sigil(&document, node);
+            else {
+                Node* last = document.tail;
+                char chr = 0;
+                while ( node_is_WHITESPACE( last ) || node_is_COMMENT( last ) )
+                    last = last->previous;
+                chr = last->content[ last->length - 1 ];
+                if ( 0 != strncmp( last->content, "return", 6 ) && chr && ( ( chr == ')' ) || ( chr == '.' ) || ( chr == ']' ) || ( is_identifier( chr ) ) ) )
+                    _slash_star_extract_sigil( &document, node );
+                else
+                    _slash_star_extract_regexp( &document, node );
+            }
         }
         else if ((document.buffer[document.offset] == '"') || (document.buffer[document.offset] == '\''))
             _slash_star_extract_literal(&document, node);
