@@ -29,11 +29,11 @@ is( $output, <<_END_ );
  // Yo
 _END_
 
-$input = file( 'jquery.tablesorter.js' )->slurp;
+$input = file(qw/ t assets jquery.tablesorter.js /)->slurp;
 $output = String::Comments::Extract::SlashStar->extract_comments( $input );
 #diag( "[$output]" );
 
-$input = file( 'jquery-1.4.4.js' )->slurp;
+$input = file(qw/ t assets jquery-1.4.4.js /)->slurp;
 $output = String::Comments::Extract::SlashStar->extract_comments( $input );
 #diag( "[$output]" );
 
