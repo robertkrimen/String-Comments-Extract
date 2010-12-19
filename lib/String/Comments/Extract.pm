@@ -1,27 +1,19 @@
 package String::Comments::Extract;
+# ABSTRACT: Extract comments from C/C++/JavaScript/Java source
 
 use warnings;
 use strict;
 
-=head1 NAME
+use XSLoader;
 
-String::Comments::Extract - Extract comments from C/C++/JavaScript/Java source
-
-=head1 VERSION
-
-Version 0.02
-
-=cut
-
-our $VERSION = '0.02';
-
-require Exporter;
-require DynaLoader;
-
-our @ISA = qw/Exporter DynaLoader/;
-our @EXPORT_OK = qw//;
-
-bootstrap String::Comments::Extract $VERSION;
+XSLoader::load(
+    __PACKAGE__,
+    # We need to be careful not to touch $VERSION at compile time, otherwise
+    # DynaLoader will assume it's set and check against it, which will cause
+    # fail when being run in the checkout without dzil having set the actual
+    # $VERSION
+    exists $String::Comments::Extract::{VERSION} ? ${ $String::Comments::Extract::{VERSION} } : (), 
+);
 
 use String::Comments::Extract::SlashStar;
 use String::Comments::Extract::C;
@@ -132,70 +124,6 @@ Whitespace outside of comments may not be preserved exactly
 =head1 SEE ALSO
 
 L<File::Comments>
-
-=cut
-
-=head1 AUTHOR
-
-Robert Krimen, C<< <rkrimen at cpan.org> >>
-
-=head1 SOURCE
-
-You can contribute or fork this project via GitHub:
-
-L<http://github.com/robertkrimen/string-comments-extract/tree/master>
-
-    git clone git://github.com/robertkrimen/string-comments-extract.git PACKAGE
-
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-string-comments-extract at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=String-Comments-Extract>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc String::Comments::Extract
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=String-Comments-Extract>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/String-Comments-Extract>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/String-Comments-Extract>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/String-Comments-Extract>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2008 Robert Krimen, all rights reserved.
-
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
-
 
 =cut
 

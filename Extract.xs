@@ -298,12 +298,10 @@ void _slash_star_extract_regexp( slash_star_document* document, Node* node ) {
     }
     offset += 1;
     slash_star_set_node_content( node, document->buffer + document->offset, offset - document->offset );
-    /*printf( "# re: %s\n", node->content );*/
     node->type = NODE_IDENTIFIER;
 }
 
 void _slash_star_extract_sigil(slash_star_document* document, Node* node) {
-    /*printf( "# SIGIL %c\n", document->buffer[ document->offset ] ); */
     slash_star_set_node_content(node, document->buffer+document->offset, 1);
     node->type = NODE_SIGIL;
 }
@@ -325,7 +323,6 @@ Node* slash_star_tokenize_string(const char* string) {
         if (!document.tail)
             document.tail = node;
             
-        /*printf( "# %c\n", document.buffer[ document.offset ] ); */
         if (document.buffer[document.offset] == '/') {
             if (document.buffer[document.offset+1] == '*')
                 _slash_star_extract_block_comment(&document, node);

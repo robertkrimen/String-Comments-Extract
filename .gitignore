@@ -1,4 +1,3 @@
 Makefile
-local
-inc
-*.bs
+String-Comments-Extract-*
+
