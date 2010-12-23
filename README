@@ -3,7 +3,7 @@ NAME
     source
 
 VERSION
-    version 0.022
+    version 0.023
 
 SYNOPSIS
         use String::Comments::Extract;
