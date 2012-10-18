@@ -86,7 +86,7 @@ typedef struct {
     const char* buffer;
     size_t      length;
     size_t      offset;
-} slash_star_document;
+} _SCE_document;
 
 
 #define node_is_WHITESPACE(node)                  ((node->type == NODE_WHITESPACE))
@@ -103,7 +103,7 @@ typedef struct {
 #define node_is_ENDSPACE(node)                    (node_is_WHITESPACE(node) && is_Endspace(node->content[0]))
 #define node_is_CHAR(node,chr)                    ((node->content[0]==chr) && (node->length==1))
 
-Node* slash_star_alloc_node() {
+Node* _SCE_alloc_node() {
     Node* node = malloc(sizeof(Node));
     node->previous = NULL;
     node->next = NULL;
@@ -113,45 +113,45 @@ Node* slash_star_alloc_node() {
     return node;
 }
 
-void slash_star_free_node(Node* node) {
+void _SCE_free_node(Node* node) {
     if (node->content)
         free(node->content);
     free(node);
 }
-void slash_star_free_node_list(Node* head) {
+void _SCE_free_node_list(Node* head) {
     return;
     while (head) {
         Node* tmp = head->next;
-        slash_star_free_node(head);
+        _SCE_free_node(head);
         head = tmp;
     }
 }
 
-void slash_star_clear_node_content(Node* node) {
+void _SCE_clear_node_content(Node* node) {
     if (node->content)
         free(node->content);
     node->content = NULL;
     node->length = 0;
 }
 
-void slash_star_set_node_content(Node* node, const char* string, size_t length) {
+void _SCE_set_node_content(Node* node, const char* string, size_t length) {
     size_t buffer_size = length + 1;
-    slash_star_clear_node_content(node);
+    _SCE_clear_node_content(node);
     node->length = length;
     node->content = malloc( sizeof(char) * buffer_size );
     memset( node->content, 0, buffer_size );
     strncpy( node->content, string, length );
 }
 
-void slash_star_discard_node(Node* node) {
+void _SCE_discard_node(Node* node) {
     if (node->previous)
         node->previous->next = node->next;
     if (node->next)
         node->next->previous = node->previous;
-    slash_star_free_node(node);
+    _SCE_free_node(node);
 }
 
-void slash_star_append_node(Node* element, Node* node) {
+void _SCE_append_node(Node* element, Node* node) {
     if (element->next)
         element->next->previous = node;
     node->next = element->next;
@@ -159,7 +159,7 @@ void slash_star_append_node(Node* element, Node* node) {
     element->next = node;
 }
 
-void slash_star_collapse_node_to_whitespace(Node* node) {
+void _SCE_collapse_node_to_whitespace(Node* node) {
     if (node->content) {
         char ws = node->content[0];
         size_t idx;
@@ -169,11 +169,11 @@ void slash_star_collapse_node_to_whitespace(Node* node) {
                 break;
             }
         }
-        slash_star_set_node_content(node, &ws, 1);
+        _SCE_set_node_content(node, &ws, 1);
     }
 }
 
-void slash_star_collapse_node_to_endspace(Node* node) {
+void _SCE_collapse_node_to_endspace(Node* node) {
     if (node->content) {
         char ws = 0;
         size_t idx;
@@ -183,14 +183,14 @@ void slash_star_collapse_node_to_endspace(Node* node) {
                 break;
             }
         }
-        slash_star_clear_node_content(node);
+        _SCE_clear_node_content(node);
         if (ws)
-            slash_star_set_node_content(node, &ws, 1);
+            _SCE_set_node_content(node, &ws, 1);
     }
 }
 
 
-void _slash_star_extract_literal(slash_star_document* document, Node* node) {
+void __SCE_extract_literal(_SCE_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
     char delimiter  = buffer[offset];
@@ -205,7 +205,7 @@ void _slash_star_extract_literal(slash_star_document* document, Node* node) {
         else if (buffer[offset] == delimiter) {
             const char* start = buffer + document->offset;
             size_t length     = offset - document->offset + 1;
-            slash_star_set_node_content(node, start, length);
+            _SCE_set_node_content(node, start, length);
             node->type = NODE_LITERAL;
             return;
         }
@@ -215,7 +215,7 @@ void _slash_star_extract_literal(slash_star_document* document, Node* node) {
     croak( "Unterminated quoted string literal" );
 }
 
-void _slash_star_extract_block_comment(slash_star_document* document, Node* node) {
+void __SCE_extract_block_comment(_SCE_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
 
@@ -230,7 +230,7 @@ void _slash_star_extract_block_comment(slash_star_document* document, Node* node
 
                 const char* start = buffer + document->offset;
                 size_t length     = offset - document->offset + 2;
-                slash_star_set_node_content(node, start, length);
+                _SCE_set_node_content(node, start, length);
                 node->type = NODE_BLOCK_COMMENT;
                 return;
             }
@@ -242,7 +242,7 @@ void _slash_star_extract_block_comment(slash_star_document* document, Node* node
     croak( "Unterminated block comment" );
 }
 
-void _slash_star_extract_line_comment(slash_star_document* document, Node* node) {
+void __SCE_extract_line_comment(_SCE_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
 
@@ -257,30 +257,30 @@ void _slash_star_extract_line_comment(slash_star_document* document, Node* node)
     {
         const char* start = buffer + document->offset;
         size_t length = offset - document->offset;
-        slash_star_set_node_content(node, start, length);
+        _SCE_set_node_content(node, start, length);
         node->type = NODE_LINE_COMMENT;
     }
 }
 
-void _slash_star_extract_whitespace(slash_star_document* document, Node* node) {
+void __SCE_extract_whitespace(_SCE_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
     while ((offset < document->length) && is_Whitespace(buffer[offset]))
         offset ++;
-    slash_star_set_node_content(node, document->buffer+document->offset, offset-document->offset);
+    _SCE_set_node_content(node, document->buffer+document->offset, offset-document->offset);
     node->type = NODE_WHITESPACE;
 }
 
-void _slash_star_extract_identifier(slash_star_document* document, Node* node) {
+void __SCE_extract_identifier(_SCE_document* document, Node* node) {
     const char* buffer = document->buffer;
     size_t offset   = document->offset;
     while ((offset < document->length) && is_identifier(buffer[offset]))
         offset ++;
-    slash_star_set_node_content(node, document->buffer+document->offset, offset-document->offset);
+    _SCE_set_node_content(node, document->buffer+document->offset, offset-document->offset);
     node->type = NODE_IDENTIFIER;
 }
 
-void _slash_star_extract_regexp( slash_star_document* document, Node* node ) {
+void __SCE_extract_regexp( _SCE_document* document, Node* node ) {
     const char* buffer = document->buffer;
     size_t offset = document->offset + 1;
     int in_character_class;
@@ -297,17 +297,17 @@ void _slash_star_extract_regexp( slash_star_document* document, Node* node ) {
         }
     }
     offset += 1;
-    slash_star_set_node_content( node, document->buffer + document->offset, offset - document->offset );
+    _SCE_set_node_content( node, document->buffer + document->offset, offset - document->offset );
     node->type = NODE_IDENTIFIER;
 }
 
-void _slash_star_extract_sigil(slash_star_document* document, Node* node) {
-    slash_star_set_node_content(node, document->buffer+document->offset, 1);
+void __SCE_extract_sigil(_SCE_document* document, Node* node) {
+    _SCE_set_node_content(node, document->buffer+document->offset, 1);
     node->type = NODE_SIGIL;
 }
 
-Node* slash_star_tokenize_string(const char* string) {
-    slash_star_document document;
+Node* _SCE_tokenize_string(const char* string) {
+    _SCE_document document;
 
     document.head = NULL;
     document.tail = NULL;
@@ -317,7 +317,7 @@ Node* slash_star_tokenize_string(const char* string) {
 
     while ((document.offset < document.length) && (document.buffer[document.offset])) {
 
-        Node* node = slash_star_alloc_node();
+        Node* node = _SCE_alloc_node();
         if (!document.head)
             document.head = node;
         if (!document.tail)
@@ -325,9 +325,9 @@ Node* slash_star_tokenize_string(const char* string) {
             
         if (document.buffer[document.offset] == '/') {
             if (document.buffer[document.offset+1] == '*')
-                _slash_star_extract_block_comment(&document, node);
+                __SCE_extract_block_comment(&document, node);
             else if (document.buffer[document.offset+1] == '/')
-                _slash_star_extract_line_comment(&document, node);
+                __SCE_extract_line_comment(&document, node);
             else {
                 Node* last = document.tail;
                 char chr = 0;
@@ -335,29 +335,29 @@ Node* slash_star_tokenize_string(const char* string) {
                     last = last->previous;
                 chr = last->content[ last->length - 1 ];
                 if ( 0 != strncmp( last->content, "return", 6 ) && chr && ( ( chr == ')' ) || ( chr == '.' ) || ( chr == ']' ) || ( is_identifier( chr ) ) ) )
-                    _slash_star_extract_sigil( &document, node );
+                    __SCE_extract_sigil( &document, node );
                 else
-                    _slash_star_extract_regexp( &document, node );
+                    __SCE_extract_regexp( &document, node );
             }
         }
         else if ((document.buffer[document.offset] == '"') || (document.buffer[document.offset] == '\''))
-            _slash_star_extract_literal(&document, node);
+            __SCE_extract_literal(&document, node);
         else if (is_Whitespace(document.buffer[document.offset]))
-            _slash_star_extract_whitespace(&document, node);
+            __SCE_extract_whitespace(&document, node);
         else if (is_identifier(document.buffer[document.offset]))
-            _slash_star_extract_identifier(&document, node);
+            __SCE_extract_identifier(&document, node);
         else
-            _slash_star_extract_sigil(&document, node);
+            __SCE_extract_sigil(&document, node);
 
         if (node->length) {
             document.offset += node->length;
             if (node != document.tail)
-                slash_star_append_node(document.tail, node);
+                _SCE_append_node(document.tail, node);
             document.tail = node;
         }
         else {
             document.offset += 1;
-            slash_star_free_node(node);
+            _SCE_free_node(node);
         }
     }
 
@@ -370,7 +370,7 @@ enum {
     PRUNE_CURRENT,
     PRUNE_NEXT
 };
-int slash_star_can_prune(Node* node) {
+int _SCE_can_prune(Node* node) {
 
     Node* previous = node->previous;
     Node* next = node->next;
@@ -395,26 +395,26 @@ int slash_star_can_prune(Node* node) {
     return PRUNE_CURRENT;
 }
 
-Node* slash_star_prune_branch(Node *head) {
+Node* _SCE_prune_branch(Node *head) {
     Node* current = head;
     while (current) {
-        int prune = slash_star_can_prune(current);
+        int prune = _SCE_can_prune(current);
         Node* previous = current->previous;
         Node* next = current->next;
         switch (prune) {
             case PRUNE_PREVIOUS:
-                slash_star_discard_node(previous);
+                _SCE_discard_node(previous);
                 if (previous == head)
                     previous = current;
                 break;
             case PRUNE_CURRENT:
-                slash_star_discard_node(current);
+                _SCE_discard_node(current);
                 if (current == head)
                     head = previous ? previous : next;
                 current = previous ? previous : next;
                 break;
             case PRUNE_NEXT:
-                slash_star_discard_node(next);
+                _SCE_discard_node(next);
                 break;
             default:
                 current = next;
@@ -425,11 +425,11 @@ Node* slash_star_prune_branch(Node *head) {
     return head;
 }
 
-char* slash_star_extract_comments(const char* string) {
+char* _SCE_extract_comments(const char* string) {
     char* result;
-    Node* head = slash_star_tokenize_string(string);
+    Node* head = _SCE_tokenize_string(string);
     if (!head) return NULL;
-    head = slash_star_prune_branch(head);
+    head = _SCE_prune_branch(head);
     if (!head) return NULL;
     {
         Node* current;
@@ -443,7 +443,7 @@ char* slash_star_extract_comments(const char* string) {
         }
         *ptr = 0;
     }
-    slash_star_free_node_list(head);
+    _SCE_free_node_list(head);
     return result;
 }
 
@@ -454,13 +454,13 @@ MODULE = String::Comments::Extract PACKAGE = String::Comments::Extract
 PROTOTYPES: disable
 
 SV*
-_slash_star_extract_comments(string)
+__SCE_extract_comments(string)
     SV* string
     INIT:
         char* buffer = NULL;
         RETVAL = &PL_sv_undef;
     CODE:
-        buffer = slash_star_extract_comments( SvPVX(string) );
+        buffer = _SCE_extract_comments( SvPVX(string) );
         if (buffer != NULL) {
             RETVAL = newSVpv(buffer, 0);
             free( buffer );
